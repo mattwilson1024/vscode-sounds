@@ -10,14 +10,14 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:extension.helloWorld",
+		"onCommand:vscode-sounds.start",
 		"*"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [{
-			"command": "extension.helloWorld",
-			"title": "Hello World"
+			"command": "vscode-sounds.start",
+			"title": "Start VSCode Sounds"
 		}]
 	},
 	"scripts": {

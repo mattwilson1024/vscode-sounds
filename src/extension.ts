@@ -1,32 +1,60 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import { startSpeakingCode } from './speak-code';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-	
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "code-sounds" is now active!');
+	context.subscriptions.push(
+    vscode.commands.registerCommand('vscode-sounds.start', () => {
+      const panel = vscode.window.createWebviewPanel(
+        'vscodeSounds', // Identifies the type of the webview. Used internally
+        'VSCode Sounds', // Title of the panel displayed to the user
+        vscode.ViewColumn.Two, // Editor column to show the new webview panel in.
+        {
+					enableScripts: true
+				} // Webview options. More on these later.
+			);
+			
+			const filePath: vscode.Uri = vscode.Uri.file(join(context.extensionPath, 'src', 'index.html'));
+			panel.webview.html = readFileSync(filePath.fsPath, 'utf8');
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('extension.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
 
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hey, World!');
-	});
+			vscode.window.onDidChangeTextEditorSelection((e => {
+				const selection = e.selections.length ? e.selections[0] : null;
+				if (selection && selection.isSingleLine && selection.start.character > 0) {
+					const charBeforeRange = new vscode.Range(selection.start.line, selection.start.character - 1, selection.start.line, selection.start.character);
+					const charBefore = e.textEditor.document.getText(charBeforeRange);
+		
+					const alphanumericCharPattern = /[A-Za-z0-9]/;
+					const triggerChars = [' ', ';', '(', ')', '{', '}', ',', ':', `'`, '"', '`', '<', '>', '.'];
+					// if (alphanumericCharPattern.test(charBefore)) {
+					if (triggerChars.includes(charBefore)) {
+						const lineUpToSelectionRange = new vscode.Range(selection.start.line, 0, selection.start.line, selection.start.character);
+						const lineUpToSelection = e.textEditor.document.getText(lineUpToSelectionRange);
+		
+						const lineUpToSelectionSpeakable = lineUpToSelection.replace('===', 'equals').replace('==', 'equals').replace('=', 'equals').replace('>', 'greater than').replace('<', 'less than');
+		
+						const readableWordPattern  = /[A-Za-z0-9_]+/g;
+						const readableWords = lineUpToSelectionSpeakable.match(readableWordPattern);
+						if (readableWords && readableWords.length) {
+							const word = readableWords[readableWords.length - 1];
+							const firstLetter = word.substr(0, 1);
+							
+							const note = firstLetter === 'a' ? 'C4' : 'D4';
 
-	context.subscriptions.push(disposable);
+							panel.webview.postMessage({
+								note: note
+							});
+						}
+					}
+				}
+    	}));
 
-	vscode.window.showInformationMessage('nice!');
 
-	startSpeakingCode();
+
+
+			
+		})
+  );
 }
 
-// this method is called when your extension is deactivated
 export function deactivate() {}

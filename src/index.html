@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>VSCode Sounds</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/13.0.1/Tone.min.js"></script>
+</head>
+<body>
+	
+	<h1>Howdy, world!</h1>
+
+  <script>
+    //create a synth and connect it to the master output (your speakers)
+    var synth = new Tone.Synth().toMaster()
+
+    //schedule a series of notes to play as soon as the page loads
+    synth.triggerAttackRelease('C4', '4n', '8n')
+    synth.triggerAttackRelease('E4', '8n', Tone.Time('4n') + Tone.Time('8n'))
+    synth.triggerAttackRelease('G4', '16n', '2n')
+    synth.triggerAttackRelease('B4', '16n', Tone.Time('2n') + Tone.Time('8t'))
+    synth.triggerAttackRelease('G4', '16', Tone.Time('2n') + Tone.Time('8t')*2)
+    synth.triggerAttackRelease('E4', '2n', '0:3')
+    
+    window.addEventListener('message', event => {
+      const message = event.data; // The JSON data our extension sent
+      const note = message.note;
+
+      console.log(note);
+      synth.triggerAttackRelease(note, '16n');
+    });
+
+  </script>
+
+</body>
+</html>
